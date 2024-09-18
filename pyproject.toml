@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Marco Pizzocaro <m.pizzocaro@inrim.it>"]
 readme = "README.md"
-packages = [{include = "gaussmarkovsrs", from = "src"}]
+packages = [{include = "gauss_markov_srs", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -16,8 +16,16 @@ matplotlib = "^3.9.2"
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.6.5"
 ipython = "^8.27.0"
+
+
+[tool.poetry.group.test.dependencies]
 pytest = "^8.3.3"
+hypothesis = "^6.112.1"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.ruff]
+line-length = 120
