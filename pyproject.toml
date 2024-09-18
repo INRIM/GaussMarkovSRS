@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "gaussmarkovsrs"
+name = "gauss-markov-srs"
 version = "0.1.0"
 description = ""
 authors = ["Marco Pizzocaro <m.pizzocaro@inrim.it>"]
