@@ -1,4 +1,4 @@
-## Gauss Markov fit for the Secondary Representation of the Second
+## Gauss Markov fit for the Secondary Representations of the Second
 
 This package will implement a Gauss Markov fit of the frequency values of atomic clocks to derive adjusted frequency values.
 This is part of the work of the [CCL-CCTF WGFS](https://www.bipm.org/en/committees/cc/cctf/wg/ccl-cctf-wgfs).
