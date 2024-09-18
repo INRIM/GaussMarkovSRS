@@ -47,21 +47,24 @@ def gauss_markov_fit(A, y, Cyy):
             Chi squared of the fit
 
     """
-    A = np.matrix(A)
-    Cyy = np.matrix(Cyy)
+    A = np.asanyarray(A)
+    y = np.asanyarray(y)
+    Cyy = np.asanyarray(Cyy)
 
-    Cqq = (A.transpose() * Cyy**-1 * A) ** -1
-    weights = Cqq * A.transpose() * Cyy**-1
+    invCyy = np.linalg.inv(Cyy)
+
+    Cqq = np.linalg.inv(A.transpose() @ invCyy @ A)
+    weights = Cqq @ A.transpose() @ invCyy
 
     q = np.dot(weights, y).T
 
     nm, na = A.shape
     ndof = nm - na
 
-    Q = np.matrix(y).T - A * q
-    chi2 = (Q.T * Cyy**-1 * Q)[0, 0]
+    Q = y - A @ q
+    chi2 = Q.T @ invCyy @ Q
 
-    Sc = np.diag(A * weights)
+    Sc = np.diag(A @ weights)
 
     ret_q = np.squeeze(np.array(q, ndmin=1))
     ret_C = np.array(Cqq)
