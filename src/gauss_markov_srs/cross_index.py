@@ -27,13 +27,16 @@ def get_cross_index(strings, integers=None):
         If strings or integers are not unique or of different lengths.
     """
 
-    if len(strings) != len(np.unique(strings)):
-        raise ValueError("Strings must be unique")
+    unique, counts = np.unique(strings, return_counts=True)
+    if (counts > 1).any():
+        raise ValueError(f"Strings must be unique. Not unique strings = {unique[counts>1]}")
 
     if integers is None:
         integers = np.arange(len(strings))
-    elif len(strings) != len(np.unique(strings)):
-        raise ValueError("Integers must be unique")
+    else:
+        unique, counts = np.unique(integers, return_counts=True)
+        if (counts > 1).any():
+            raise ValueError(f"Integers must be unique. Not unique strings = {unique[counts>1]}")
 
     if len(strings) != len(integers):
         raise ValueError("String and integer indices must have the same number of elements.")
