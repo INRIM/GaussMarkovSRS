@@ -7,8 +7,33 @@ import numpy as np
 
 
 def get_cross_index(strings, integers=None):
+    """Return two vectorized functions to convert integer or string indices.
+
+    Parameters
+    ----------
+    strings : array_like
+        List of unique identifier.
+    integers : array_like, optional
+        List of unique identifiers, by default None (converts to np.arange(len(strings))).
+
+    Returns
+    -------
+    callable, callable
+        Vectorized function to convert from string to integers and from integers to strings.
+
+    Raises
+    ------
+    ValueError
+        If strings or integers are not unique or of different lengths.
+    """
+
+    if len(strings) != len(np.unique(strings)):
+        raise ValueError("Strings must be unique")
+
     if integers is None:
         integers = np.arange(len(strings))
+    elif len(strings) != len(np.unique(strings)):
+        raise ValueError("Integers must be unique")
 
     if len(strings) != len(integers):
         raise ValueError("String and integer indices must have the same number of elements.")
