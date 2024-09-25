@@ -21,6 +21,7 @@ class FitStats:
     n_excluded: int
     n_included: int
     n_dof: int
+    yu: np.ndarray
     self_sensitivity: np.ndarray
     residuals: np.ndarray
     relative_residuals: np.ndarray
@@ -192,6 +193,7 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
         n_excluded,
         n_included,
         n_dof,
+        yu,
         self_sensitivity,
         residuals,
         relative_residuals,
