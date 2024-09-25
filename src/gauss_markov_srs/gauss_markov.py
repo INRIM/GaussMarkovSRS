@@ -27,6 +27,8 @@ class FitStats:
     birge: float
     birge_limit: float
     p_value: float
+    n_corr_nonzero: int
+    min_eigenvalue: float
 
 
 def gauss_markov_fit(A, y, Cyy, mask=None):
@@ -134,6 +136,10 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
                 Simple criteria for maximum acceptable Birge ratio
             p_value: float
                 p_value of the chi2 (probability of chi2 < chi2observed)
+            n_corr_nonzero: int
+                Number of non-zero correlation coefficients.
+            min_eigenvalue: float
+                Square root of the minimum eigenvalue of the input covariance matrix.
     """
 
     A = np.asanyarray(A)
@@ -168,6 +174,10 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
     birge_limit = 1 + (2 / n_dof) ** 0.5
     p_value = st.chi2(df=n_dof).cdf(chi2)
 
+    val, _ = np.linalg.eigh(Cyy)
+    min_eigenvalue = np.amin(val) ** 0.5
+    n_corr_nonzero = np.count_nonzero(Cyy - np.eye(n_included) * yu[mask] ** 2) // 2
+
     # prepare return arrays
     self_sensitivity = np.squeeze(np.array(Sc, ndmin=1))
     residuals = np.squeeze(np.array(Q, ndmin=1))
@@ -186,6 +196,8 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
         birge,
         birge_limit,
         p_value,
+        n_corr_nonzero,
+        min_eigenvalue,
     )
 
     return ret

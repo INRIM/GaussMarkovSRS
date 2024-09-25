@@ -49,6 +49,8 @@ def pretty_print_stats(fit_stats: FitStats):
     print(f"p value = prob(chi2 < chi2 observed) = {fit_stats.p_value:.3f}")
     print(f"Inputs > 2 sigmas = {np.sum(np.abs(fit_stats.relative_residuals)>2)}")
     print(f"Inputs Sc > 1% = {np.sum(fit_stats.self_sensitivity >= 0.01)}")
+    print(f"Number of non-zero correlations = {fit_stats.n_corr_nonzero}")
+    print(f"Square root of min eigenvalue of covariance inputs = {fit_stats.min_eigenvalue:.3e}")
 
 
 if __name__ == "__main__":
