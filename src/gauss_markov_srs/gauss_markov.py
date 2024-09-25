@@ -1,15 +1,7 @@
-from dataclasses import dataclass
-
 import numpy as np
 
-# @dataclass
-# class FitResult:
-#     q: np.ndarray
-#     cov: np.ndarray
-#     weights: np.ndarray
 
-
-def gauss_markov_fit(A, y, Cyy):
+def gauss_markov_fit(A, y, Cyy, mask=None):
     """Generic Gauss-Markov fit.
 
     Parameters
@@ -20,7 +12,8 @@ def gauss_markov_fit(A, y, Cyy):
         Input data.
     Cyy : 2d array, shape (N, N)
         Covariance matrix of input data.
-
+    mask : 1d array, shape (N,), optional
+        Mask of valid data point (True=valid), by default None use all data.
     Returns
     -------
     tuple
@@ -35,6 +28,17 @@ def gauss_markov_fit(A, y, Cyy):
     A = np.asanyarray(A)
     y = np.asanyarray(y)
     Cyy = np.asanyarray(Cyy)
+
+    if mask is None:
+        mask = np.ones_like(y).astype(bool)
+    else:
+        mask = np.asanyarray(mask).astype(bool)
+
+    nMeas, nAdj = A.shape
+
+    A = A[mask]
+    y = y[mask]
+    Cyy = Cyy[mask][:, mask]
 
     invCyy = np.linalg.inv(Cyy)
 
@@ -43,39 +47,19 @@ def gauss_markov_fit(A, y, Cyy):
 
     q = np.dot(weights, y).T
 
+    weights_all = np.zeros((nAdj, nMeas))
+    weights_all[:, mask] = weights
+
     ret_q = np.squeeze(np.array(q, ndmin=1))
     ret_C = np.array(Cqq)
-    ret_weights = np.squeeze(np.array(weights, ndmin=1))
+    ret_weights = np.squeeze(np.array(weights_all, ndmin=1))
 
     ret = (ret_q, ret_C, ret_weights)
     return ret
 
 
-def fit_stats(A, y, Cyy, q, Cqq, weights):
-    # Self-sensitivity coefficients for the input data.
-    # residuals : ndarray, shape (N, )
-    #     Residuals of the fit.
-    # ndof : int
-    #     Number of degrees of freedom.
-    # chi2 : float
-    #     Chi squared of the fit
-
-    invCyy = np.linalg.inv(Cyy)
-    Sc = np.diag(A @ weights)
-    Q = y - A @ q
-    nm, na = A.shape
-    ndof = nm - na
-    chi2 = Q.T @ invCyy @ Q
-
-    self_sensitivity = np.squeeze(np.array(Sc, ndmin=1))
-    residuals = np.squeeze(np.array(Q, ndmin=1))
-
-    ret = (self_sensitivity, residuals, ndof, chi2)
-    return ret
-
-
-def gauss_markov_fit_with_mask(A, y, Cyy, mask=None):
-    """Generic Gauss-Markov fit.
+def fit_stats(A, y, Cyy, q, Cqq, weights, mask=None):
+    """Calculate some statistics from the fit result.
 
     Parameters
     ----------
@@ -85,18 +69,28 @@ def gauss_markov_fit_with_mask(A, y, Cyy, mask=None):
         Input data.
     Cyy : 2d array, shape (N, N)
         Covariance matrix of input data.
-
+    q : ndarray, shape (M,)
+        Adjusted values.
+    cov : ndarray, shape (M, M)
+        Covariance matrix of the adjusted values.
+    weights : ndarray, shape (M, N)
+        Matrix of weights to apply to the data to get the fit result.
+    mask : 1d array, shape (N,), optional
+        Mask of valid data point (True=valid), by default None use all data.
     Returns
     -------
     tuple
         Tuple with elements:
-        q : ndarray, shape (M,)
-            Adjusted values.
-        cov : ndarray, shape (M, M)
-            Covariance matrix of the adjusted values.
-        weights : ndarray, shape (M, N)
-            Matrix of weights to apply to the data to get the fit result.
+        self-sensitivity : ndarray, shape (N, )
+            Self-sensitivity coefficients for the input data.
+        residuals : ndarray, shape (N, )
+            Residuals of the fit.
+        ndof : int
+            Number of degrees of freedom.
+        chi2 : float
+            Chi squared of the fit
     """
+
     A = np.asanyarray(A)
     y = np.asanyarray(y)
     Cyy = np.asanyarray(Cyy)
@@ -106,60 +100,29 @@ def gauss_markov_fit_with_mask(A, y, Cyy, mask=None):
     else:
         mask = np.asanyarray(mask).astype(bool)
 
-    A_mask = A[mask]
-    y_mask = y[mask]
-    Cyy_mask = Cyy[mask][:, mask]
+    nMeas, nAdj = A.shape
 
-    invCyy_mask = np.linalg.inv(Cyy_mask)
-
-    Cqq = np.linalg.inv(A_mask.transpose() @ invCyy_mask @ A_mask)
-    weights_mask = Cqq @ A_mask.transpose() @ invCyy_mask
-
-    q = np.dot(weights_mask, y_mask).T
-
-    weights = np.zeros((len(q), len(y)))
-    weights[:, mask] = weights_mask
-
-    ret_q = np.squeeze(np.array(q, ndmin=1))
-    ret_C = np.array(Cqq)
-    ret_weights = np.squeeze(np.array(weights, ndmin=1))
-
-    ret = (ret_q, ret_C, ret_weights)
-    return ret
-
-
-def fit_stats_with_mask(A, y, Cyy, q, Cqq, weights, mask=None):
-    # Self-sensitivity coefficients for the input data.
-    # residuals : ndarray, shape (N, )
-    #     Residuals of the fit.
-    # ndof : int
-    #     Number of degrees of freedom.
-    # chi2 : float
-    #     Chi squared of the fit
-    A = np.asanyarray(A)
-    y = np.asanyarray(y)
-    Cyy = np.asanyarray(Cyy)
-
-    if mask is None:
-        mask = np.ones_like(y).astype(bool)
-    else:
-        mask = np.asanyarray(mask).astype(bool)
-
-    A_mask = A[mask]
-    Cyy_mask = Cyy[mask][:, mask]
-
-    invCyy_mask = np.linalg.inv(Cyy_mask)
+    # self-sensitivity and residuals can be calculated unmasked
     Sc = np.diag(A @ weights)
     Q = y - A @ q
-    Q_mask = Q[mask]
-    nm, na = A_mask.shape
-    ndof = nm - na
-    chi2 = Q_mask.T @ invCyy_mask @ Q_mask
 
+    # after that we can mask and carry on
+    A = A[mask]
+    Cyy = Cyy[mask][:, mask]
+    Q_mask = Q[mask]
+
+    invCyy = np.linalg.inv(Cyy)
+
+    nMeas_masked, nAdj = A.shape
+
+    ndof = nMeas_masked - nAdj
+    chi2 = Q_mask.T @ invCyy @ Q_mask
+
+    # prepare return tuple
     self_sensitivity = np.squeeze(np.array(Sc, ndmin=1))
     residuals = np.squeeze(np.array(Q, ndmin=1))
-
     ret = (self_sensitivity, residuals, ndof, chi2)
+
     return ret
 
 
@@ -175,5 +138,5 @@ if __name__ == "__main__":
     y = np.array([0.0, 0.49, 1.01, 33.3])
     Cyy = np.eye(4)
 
-    ret = gauss_markov_fit_with_mask(A, y, Cyy, mask=[1, 1, 1, 0])
-    stats = fit_stats_with_mask(A, y, Cyy, *ret, mask=[1, 1, 1, 0])
+    ret = gauss_markov_fit(A, y, Cyy, mask=[1, 1, 1, 0])
+    stats = fit_stats(A, y, Cyy, *ret, mask=[1, 1, 1, 0])
