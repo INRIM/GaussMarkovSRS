@@ -52,31 +52,28 @@ def gauss_markov_fit(A, y, Cyy):
     ret = (ret_q, ret_C, ret_weights)
     return ret
 
-    # self_sensitivity: np.ndarray
-    # residuals: np.ndarray
-    # ndof: int
-    # chi2: float
 
-    # #         self_sensitivity=self_sensitivity,
-    #     residuals=residuals,
-    #     ndof=ndof,
-    #     chi2=chi2,
-
-    #     self_sensitivity = np.squeeze(np.array(Sc, ndmin=1))
-    # residuals = np.squeeze(np.array(Q, ndmin=1))
-    # ndof = nm - na
-    #  #     Q = y - A @ q
-    # chi2 = Q.T @ invCyy @ Q
-
-    # Sc = np.diag(A @ weights)
-    # self_sensitivity : ndarray, shape (N,)
-    #     Self-sensitivity coefficients for the input data.
+def fit_stats(A, y, Cyy, q, Cqq, weights):
+    # Self-sensitivity coefficients for the input data.
     # residuals : ndarray, shape (N, )
     #     Residuals of the fit.
     # ndof : int
     #     Number of degrees of freedom.
     # chi2 : float
     #     Chi squared of the fit
+
+    invCyy = np.linalg.inv(Cyy)
+    Sc = np.diag(A @ weights)
+    Q = y - A @ q
+    nm, na = A.shape
+    ndof = nm - na
+    chi2 = Q.T @ invCyy @ Q
+
+    self_sensitivity = np.squeeze(np.array(Sc, ndmin=1))
+    residuals = np.squeeze(np.array(Q, ndmin=1))
+
+    ret = (self_sensitivity, residuals, ndof, chi2)
+    return ret
 
 
 if __name__ == "__main__":
@@ -85,3 +82,4 @@ if __name__ == "__main__":
     Cyy = np.eye(3)
 
     ret = gauss_markov_fit(A, y, Cyy)
+    stats = fit_stats(A, y, Cyy, *ret)
