@@ -36,6 +36,11 @@ def plot_residuals(basename, data, reference, fit_result: FitResult, fit_stats: 
     mpl.rcParams.update(mpl.rcParamsDefault)
     plt.style.use(params)
 
+    if mask is None:
+        fit_mask = np.ones(len(data)).astype(bool)
+    else:
+        fit_mask = np.asanyarray(mask).astype(bool)
+
     # to convert data for plotting, I need a conversion factor that are the adjusted constants + 0 for Cs
     k = np.append([0.0], fit_result.q)
     ku = np.append([0.0], fit_result.qu)
@@ -66,6 +71,7 @@ def plot_residuals(basename, data, reference, fit_result: FitResult, fit_stats: 
         U = fit_stats.yu[plot_mask]
         ref1 = data["Atom1"][plot_mask]
         ref2 = data["Atom2"][plot_mask]
+        input_used = fit_mask[plot_mask]
 
         # some data may require a change of sign
         mask3 = ref2 == ref_atom
@@ -92,7 +98,19 @@ def plot_residuals(basename, data, reference, fit_result: FitResult, fit_stats: 
                     xerr=(U[plot_mask2] ** 2 + ku[i] ** 2) ** 0.5,
                     label="vs {}".format(ref_atom2),
                     fmt=markers[mark],
+                    color=f"C{mark}",
                 )
+
+                not_used = ~input_used[plot_mask2]
+                if not_used.any():
+                    plt.errorbar(
+                        x=X[plot_mask2][not_used],
+                        y=Y[plot_mask2][not_used],
+                        fmt=markers[mark],
+                        color=f"C{mark}",
+                        markerfacecolor="white",
+                    )
+
                 mark += 1
 
         plt.legend(loc=0)
