@@ -12,7 +12,7 @@ def key(entry):
 
 def data_with_long_id(data):
     keys = np.array([key(d) for d in data])
-    b = rfn.append_fields(x, "Long_id", keys, usemask=False)
+    b = rfn.append_fields(data, "Long_id", keys, usemask=False)
     return b
 
 
