@@ -11,4 +11,4 @@ def test_gauss_markov_fit():
 
     ret = gauss_markov_fit(A, y, Cyy)
 
-    assert ret.q == pytest.approx(np.array([-0.005, 1.01]))
+    assert ret[0] == pytest.approx(np.array([-0.005, 1.01]))
