@@ -33,3 +33,5 @@ stats2 = gm.fit_stats(M, y, Cyy, fit_results2, mask=mask)
 print("\n====\n")
 gm.pretty_print_fit_result(fit_results2, reference)
 gm.pretty_print_stats(stats2)
+
+gm.plot_residuals("test", input_data, reference, fit_results2, stats2)
