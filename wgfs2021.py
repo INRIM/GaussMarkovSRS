@@ -16,20 +16,20 @@ Cyy = gm.corr2cov(cyy, yu)
 
 
 fit_results = gm.gauss_markov_fit(M, y, Cyy)
-stats = gm.fit_stats(M, y, Cyy, *fit_results)
+stats = gm.fit_stats(M, y, Cyy, fit_results)
 
 
-gm.pretty_print_fit_result(*fit_results, reference)
-gm.pretty_print_stats(*stats)
+gm.pretty_print_fit_result(fit_results, reference)
+gm.pretty_print_stats(stats)
 
-Sc = stats[0]
+Sc = stats.self_sensitivity
 
 mask = Sc > 0.01
 
 
 fit_results2 = gm.gauss_markov_fit(M, y, Cyy, mask=mask)
-stats2 = gm.fit_stats(M, y, Cyy, *fit_results, mask=mask)
+stats2 = gm.fit_stats(M, y, Cyy, fit_results2, mask=mask)
 
 print("\n====\n")
-gm.pretty_print_fit_result(*fit_results2, reference)
-gm.pretty_print_stats(*stats2)
+gm.pretty_print_fit_result(fit_results2, reference)
+gm.pretty_print_stats(stats2)
