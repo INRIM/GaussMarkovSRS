@@ -49,3 +49,7 @@ def corr2cov(corr, std):
     std = np.asanyarray(std)
     cov = corr * np.outer(std, std)
     return cov
+
+
+def cov2unc(cov):
+    return cov.diagonal() ** 0.5
