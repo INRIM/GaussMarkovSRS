@@ -10,6 +10,7 @@ from gauss_markov_srs.utils import cov2unc
 class FitResult:
     q: np.ndarray
     Cqq: np.ndarray
+    qu: np.ndarray
     weights: np.ndarray
 
 
@@ -51,8 +52,10 @@ def gauss_markov_fit(A, y, Cyy, mask=None):
 
         q : ndarray, shape (M,)
             Adjusted values.
-        cov : ndarray, shape (M, M)
+        Cqq : ndarray, shape (M, M)
             Covariance matrix of the adjusted values.
+        qu : ndarray, shape (M,)
+            Uncertainties of the adjusted values.
         weights : ndarray, shape (M, N)
             Matrix of weights to apply to the data to get the fit result.
     """
@@ -85,7 +88,7 @@ def gauss_markov_fit(A, y, Cyy, mask=None):
     ret_C = np.array(Cqq)
     ret_weights = np.squeeze(np.array(weights_all, ndmin=1))
 
-    ret = FitResult(ret_q, ret_C, ret_weights)
+    ret = FitResult(ret_q, ret_C, cov2unc(ret_C), ret_weights)
     return ret
 
 
