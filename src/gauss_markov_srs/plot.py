@@ -131,28 +131,33 @@ def plot_residuals(basename, data, reference, fit_result: FitResult, fit_stats: 
         plt.close()
 
 
-# 	# to convert data for plotting, I need a conversion factor that are the adjusted constants + 0 for Cs
-# 	k = np.append([0.], q)
-# 	ku = np.append([0.], qu)
+def plot_fit_results(dir, figname, reference, fit_results, labels, title=""):
+    fit_results = np.atleast_1d(fit_results)
+    labels = np.atleast_1d(labels)
 
+    N = len(fit_results)
+    M = len(reference) - 1
 
-# 		# y labels
-# 		Y = np.arange(N)
-# 		#labels = ["{}({})".format(a,b) if b  else "{}".format(a) for a, b in zip(data['Id'][mask], data['Sup'][mask]) ]
-# 		labels = data['Id'][mask]
-# 		markers = ['o', 'd', 's', 'v', 'p', '^', 'X', '*',  '<', '>', 'P', '|', '2', 'h']
+    scale = 1e-16
+    split = 0.3 / (N - 1)
 
-# 		# I have to convert the data for plotting
-# 		# note the change of sign
-# 		k = 0
-# 		for i, atom2 in enumerate(Atoms):
-# 			mask = ref == atom2
+    x0 = np.arange(M) - 0.15
 
-# 			if mask.any():
-# #				if i == 0:
-# #					fmt = 'o'
-# #				else:
-# #					fmt = 'd'
+    plt.figure()
 
-# 				plt.errorbar(x = X[mask], y = Y[mask], xerr = (U[mask]**2 + ku[i]**2)**0.5, label='vs {}'.format(atom2), fmt=markers[k])
-# 				k+=1
+    for j, (res, label) in enumerate(zip(fit_results, labels)):
+        x = x0 + j * split
+        plt.errorbar(x=x, y=res.q / scale, yerr=res.qu / scale, fmt="d", label=label)
+
+    plt.ylabel("$q\\times10^{16}$")
+    plt.grid()
+    plt.axhline(0, color="gray", linewidth=1)
+    plt.legend(loc=0)
+
+    plt.xticks(np.arange(M), reference["Atom"][1:], rotation=90)
+    plt.xlim(-0.5, M + 0.5)
+
+    plt.ylim(-5, 5)
+
+    plt.tight_layout()
+    plt.show(block=False)

@@ -5,7 +5,6 @@ import scipy.stats as st
 
 from gauss_markov_srs.gauss_markov import FitResult, FitStats
 from gauss_markov_srs.postprocess import results_to_decimal
-from gauss_markov_srs.utils import cov2unc
 
 
 def unc_to_precision(u, digits=3):
