@@ -104,12 +104,8 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
         Input data.
     Cyy : 2d array, shape (N, N)
         Covariance matrix of input data.
-    q : ndarray, shape (M,)
-        Adjusted values.
-    cov : ndarray, shape (M, M)
-        Covariance matrix of the adjusted values.
-    weights : ndarray, shape (M, N)
-        Matrix of weights to apply to the data to get the fit result.
+    fit result : FitResult
+        Dataclass of fit results from `gauss_markov_fit`
     mask : 1d array, shape (N,), optional
         Mask of valid data point (True=valid), by default None use all data.
     Returns
