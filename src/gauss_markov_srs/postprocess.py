@@ -10,8 +10,9 @@ def results_to_decimal(fit_result: FitResult, reference):
     # astype(Decimal) does not work
     dq = np.array([decimal.Decimal(x) for x in fit_result.q])
     dqu = np.array([decimal.Decimal(x) for x in fit_result.qu])
+    ref = np.array([decimal.Decimal(x) for x in reference["nu0"][1:]])
 
-    dres = reference["nu0"][1:] * (dq + decimal.Decimal(1))
-    dresu = reference["nu0"][1:] * (dqu)
+    dres = ref * (dq + decimal.Decimal(1))
+    dresu = ref * (dqu)
 
     return dres, dresu

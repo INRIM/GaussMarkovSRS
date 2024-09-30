@@ -1,3 +1,5 @@
+import decimal
+
 import numpy as np
 import numpy.lib.recfunctions as rfn
 
@@ -23,8 +25,13 @@ def get_y(data, reference):
     nu1 = reference[ref_str_to_i(data["Atom1"])]["nu0"]
     nu2 = reference[ref_str_to_i(data["Atom2"])]["nu0"]
 
-    y = (data["Value"] / nu1 * nu2 - 1).astype(float)
-    yu = (data["Unc"] / nu1 * nu2).astype(float)
+    nu1 = np.array([decimal.Decimal(x) for x in nu1])
+    nu2 = np.array([decimal.Decimal(x) for x in nu2])
+    value = np.array([decimal.Decimal(x) for x in data["Value"]])
+    unc = np.array([decimal.Decimal(x) for x in data["Unc"]])
+
+    y = (value / nu1 * nu2 - 1).astype(float)
+    yu = (unc / nu1 * nu2).astype(float)
 
     return y, yu
 
@@ -63,7 +70,7 @@ def get_corr_matrix(data, cor_data):
     index1 = dat_str_to_i(cor_data["Id1"][mask])
     index2 = (dat_str_to_i(cor_data["Id2"][mask]),)
 
-    cyy[index1, index2] = cor_data["Corr"][mask]
+    cyy[index1, index2] = cor_data["Corr"][mask].astype(float)
 
     # symmetrize
     cyy = cyy + cyy.T - np.diag(cyy.diagonal())
