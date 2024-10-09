@@ -1,3 +1,5 @@
+import os
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,16 +23,32 @@ params = {
 }
 
 
-def plot_correlation_matrix(basename, cyy):
+def plot_correlation_matrix(dir, label, cyy, figname="correlation.png"):
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use(params)
+
+    os.makedirs(dir, exist_ok=True)
+
     plt.figure()
-    plt.title(f"{basename} Correlation matrix")
+    plt.title(f"{label} Correlation matrix")
     im = plt.imshow(cyy - np.eye(cyy.shape[0]), cmap="seismic", vmin=-0.8, vmax=0.8)
     plt.colorbar(im)
 
-    plt.savefig(basename + "-corr.pdf")
+    file = os.path.join(dir, figname)
+    plt.savefig(file)
+    plt.close()
+
+    mpl.rcdefaults()
 
 
-def plot_residuals(basename, data, reference, fit_result: FitResult, fit_stats: FitStats, mask=None):
+def plot_residuals(
+    dir, label, data, reference, fit_result: FitResult, fit_stats: FitStats, mask=None, basename="residuals{}-{}.png"
+):
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use(params)
+
+    os.makedirs(dir, exist_ok=True)
+
     ref_str_to_i, i_to_ref_str = get_cross_index(reference["Atom"])
 
     mpl.rcParams.update(mpl.rcParamsDefault)
@@ -126,12 +144,19 @@ def plot_residuals(basename, data, reference, fit_result: FitResult, fit_stats: 
         plt.xlabel("$y$")
 
         plt.tight_layout()
-        figname = basename + "-fig{}-{}.png".format(ref_id, ref_atom)
-        plt.savefig(figname)
+        figname = basename.format(ref_id, ref_atom)
+        file = os.path.join(dir, figname)
+        plt.savefig(file)
         plt.close()
 
+    mpl.rcdefaults()
 
-def plot_fit_results(dir, figname, reference, fit_results, labels, title=""):
+
+def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.png"):
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use(params)
+
+    os.makedirs(dir, exist_ok=True)
     fit_results = np.atleast_1d(fit_results)
     labels = np.atleast_1d(labels)
 
@@ -160,4 +185,7 @@ def plot_fit_results(dir, figname, reference, fit_results, labels, title=""):
     plt.ylim(-5, 5)
 
     plt.tight_layout()
-    plt.show(block=False)
+    file = os.path.join(dir, figname)
+    plt.savefig(file)
+    plt.close()
+    mpl.rcdefaults()

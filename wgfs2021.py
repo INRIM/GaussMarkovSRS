@@ -41,7 +41,13 @@ print("\n====\n")
 gm.pretty_print_fit_result(fit_results2, reference)
 gm.pretty_print_stats(stats2)
 
-# gm.plot_residuals("test", input_data, reference, fit_results2, stats2, mask=mask)
+
+dir = "./Output/Adjustment-2"
+label = "Adjustment-2"
+
+gm.plot_residuals(dir, label, input_data, reference, fit_results2, stats2, mask=mask)
+gm.plot_fit_results(dir, reference, [fit_results, fit_results2], ["WGFS2021", "Sc excluded"])
+gm.plot_correlation_matrix(dir, label, cyy, figname="input-correlation.png")
 
 
 # def random_effect_model(b):
@@ -65,4 +71,4 @@ gm.pretty_print_stats(stats2)
 # gm.plot_fit_results("", "", reference, [fit_results, fit_results2, fit_results3], ["WGFS2021", "Sc excluded", "REM"])
 
 
-gm.save("./test/test", "Adjustment_2", input_data, reference, input_corr, y, yu, fit_results2, stats2)
+gm.save(dir, label, input_data, reference, input_corr, y, yu, fit_results2, stats2)
