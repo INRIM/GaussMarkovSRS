@@ -16,3 +16,13 @@ def results_to_decimal(fit_result: FitResult, reference):
     dresu = ref * (dqu)
 
     return dres, dresu
+
+
+# get a unique key for each measurement
+def key(entry):
+    s = "_".join((f'{entry["Id"]}', entry["Ref"], entry["Atom1"], entry["Atom2"], entry["Sup"]))
+    return s.strip("_")  # get rid of last '_' is Sup is empty
+
+
+def get_keys(data):
+    return np.array([key(d) for d in data])

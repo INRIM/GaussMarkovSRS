@@ -5,17 +5,10 @@ import numpy.lib.recfunctions as rfn
 
 from gauss_markov_srs.cross_index import get_cross_index
 
-
-# get a unique key for each measurement
-def key(entry):
-    s = "_".join((f'{entry["Id"]}', entry["Ref"], entry["Atom1"], entry["Atom2"], entry["Sup"]))
-    return s.strip("_")  # get rid of last '_' is Sup is empty
-
-
-def data_with_long_id(data):
-    keys = np.array([key(d) for d in data])
-    b = rfn.append_fields(data, "Long_id", keys, usemask=False)
-    return b
+# def data_with_long_id(data):
+#     keys = np.array([key(d) for d in data])
+#     b = rfn.append_fields(data, "Long_id", keys, usemask=False)
+#     return b
 
 
 def get_y(data, reference):
