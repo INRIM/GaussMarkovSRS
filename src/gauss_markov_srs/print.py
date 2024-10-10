@@ -14,7 +14,7 @@ def unc_to_precision(u, digits=3):
 
 
 def decimal_to_string(d, precision):
-    return f"{d.quantize(precision)}"
+    return f"{d.quantize(precision)}".lower()
 
 
 def pretty_print_fit_result(fit_result: FitResult, reference):
