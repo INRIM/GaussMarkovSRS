@@ -24,6 +24,19 @@ params = {
 
 
 def plot_correlation_matrix(dir, label, cyy, figname="correlation.png"):
+    """Save a plot showing a correlation matrix as a heatmap.
+
+    Parameters
+    ----------
+    dir : string
+        Directory where to save the file.
+    label : str
+        Label to appear on the plot title.
+    cyy : array
+        Correlation matrix to plot.
+    figname : str, optional
+        Name of the file, by default "correlation.png".
+    """
     mpl.rcParams.update(mpl.rcParamsDefault)
     plt.style.use(params)
 
@@ -44,6 +57,27 @@ def plot_correlation_matrix(dir, label, cyy, figname="correlation.png"):
 def plot_residuals(
     dir, label, data, reference, fit_result: FitResult, fit_stats: FitStats, mask=None, basename="residuals{}-{}.png"
 ):
+    """Save plots of fit residuals, separated by atoms.
+
+    Parameters
+    ----------
+    dir : string
+        Directory where to save the file.
+    label : str
+        Label to appear on the plot title.
+    data : structured array
+        Input data.
+    reference : structured array.
+        Input reference.
+    fit_result : FitResult
+        Dataclass of fit results from `gauss_markov_fit`
+    fit_stats : FitStats
+        Dataclass of fit stats from `fit_stats`
+    mask : 1d array,  optional
+        Mask of valid data point (True=valid), by default None use all data.
+    basename : str, optional
+        String of the file name, can format ref_id and ref_atom, by default "residuals{}-{}.png"
+    """
     mpl.rcParams.update(mpl.rcParamsDefault)
     plt.style.use(params)
 
@@ -75,7 +109,7 @@ def plot_residuals(
         width, height = 8, max(6, N * 0.16 + 0.5)
 
         plt.figure(figsize=(width, height))
-        plt.title(ref_atom)
+        plt.title(ref_atom + " " + label)
 
         ref_unc = ku[ref_str_to_i(ref_atom)]
         plt.axvline(
@@ -153,6 +187,21 @@ def plot_residuals(
 
 
 def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.png"):
+    """Save a plot comparing different fit results.
+
+    Parameters
+    ----------
+    dir : string
+        Directory where to save the file.
+    reference : structured array.
+        Input reference.
+    fit_results : list of FitResult
+        list of dataclass of fit results from `gauss_markov_fit`.
+    labels : list of strings
+        List of labels for the different strings.
+    figname : str, optional
+        Name of the file, by default "fit-result.png".
+    """
     mpl.rcParams.update(mpl.rcParamsDefault)
     plt.style.use(params)
 

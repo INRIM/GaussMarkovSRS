@@ -4,10 +4,22 @@ import numpy as np
 
 from gauss_markov_srs.cross_index import get_cross_index
 from gauss_markov_srs.gauss_markov import FitResult
-from gauss_markov_srs.utils import cov2unc
 
 
 def results_to_decimal(fit_result: FitResult, reference):
+    """Cast fit results as arbitrary precision numbers.
+
+    Parameters
+    ----------
+
+    fit_result : FitResult
+        Dataclass of fit results from `gauss_markov_fit`
+
+    Returns
+    -------
+    array, array
+        adjusted constants and uncertainty as arrays of decimal.Decimal
+    """
     # astype(Decimal) does not work
     dq = np.array([decimal.Decimal(x) for x in fit_result.q])
     dqu = np.array([decimal.Decimal(x) for x in fit_result.qu])
@@ -20,16 +32,53 @@ def results_to_decimal(fit_result: FitResult, reference):
 
 
 # get a unique key for each measurement
-def key(entry):
+def _key(entry):
+    """Generate a human-readable key from an entry in the input data structured array.
+
+    Returns
+    -------
+    string
+        Key
+    """
     s = "_".join((f'{entry["Id"]}', entry["Ref"], entry["Atom1"], entry["Atom2"], entry["Sup"]))
     return s.strip("_")  # get rid of last '_' is Sup is empty
 
 
-def get_keys(data):
-    return np.array([key(d) for d in data])
+def get_long_keys(data):
+    """Generate human-readable keys from the input data structured array.
+
+    Parameters
+    ----------
+    data : structured array
+        Input data.
+
+    Returns
+    -------
+    array of strings
+        Long keys for the input data
+    """
+    return np.array([_key(d) for d in data])
 
 
 def calc_ratio(reference, fit_result, atom1, atom2):
+    """Claculate a ratio of adjusted frequencies.
+
+    Parameters
+    ----------
+    reference : structured array.
+        Input reference.
+    fit_result : FitResult
+        Dataclass of fit results from `gauss_markov_fit`
+    atom1 : string
+        string reference for atom1
+    atom2 : string
+        string reference for atom2
+
+    Returns
+    -------
+    Decimal, Decimal
+        value and uncertainty of the ratio Atom1 / Atom2
+    """
     ref_str_to_i, i_to_ref_str = get_cross_index(reference["Atom"])
 
     i1 = ref_str_to_i(atom1)
@@ -44,29 +93,3 @@ def calc_ratio(reference, fit_result, atom1, atom2):
     Du = nu_1 / nu_2 * decimal.Decimal(u)
 
     return Dr, Du
-
-    # # ratios out
-    # with open(basename + ".rat", "w") as filo:
-    #     filo.write("# Ratios between adjusted frequency values\n")
-    #     #filo.write(whodid)
-    #     fmt = "# {:8s}\t{:8s}\t" + "{: <20}\t{: <12}\t" + "{}\t" * 2 + "\n"
-    #     filo.write(fmt.format("Atom A", "Atom B", "Ratio A/B", "Unc.", "r", "u"))
-
-    #     # print ratios
-    #     for j, J in enumerate(reference["Atom"][1:]):
-    #         for i, I in enumerate(reference["Atom"][1:]):
-    #             if i < j:
-    #                 x = decimal.Decimal(fit_result.q[i] - fit_result.q[j])
-    #                 u = (fit_result.Cqq[i, i] + fit_result.Cqq[j, j] - 2 * fit_result.Cqq[i, j]) ** 0.5
-
-    #                 Dr = nu0[I] / nu0[J] * (decimal.Decimal(1) + x)
-    #                 Du = nu0[I] / nu0[J] * decimal.Decimal(u)
-
-    #                 # calculate decimal places for uncertainties with 3 digits
-    #                 places = decimal.Decimal(10) ** (int(np.floor(np.log10(abs(float(Du))))) - 2)
-
-    #                 # print("{:8}\t{:8}\t{: <20}\t{: <12}".format(I, J, Dr.quantize(places), Du.quantize(places)))
-
-    #                 fmt = "{:8s}\t{:8s}\t" + "{: <20}\t{: <12}\t" + "{:.2e}\t" * 2 + "\n"
-
-    #                 filo.write(fmt.format(I, J, Dr.quantize(places), Du.quantize(places), x, u))

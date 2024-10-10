@@ -4,23 +4,43 @@ import os
 import numpy as np
 
 from gauss_markov_srs.gauss_markov import FitResult, FitStats
-from gauss_markov_srs.postprocess import calc_ratio, get_keys, results_to_decimal
+from gauss_markov_srs.postprocess import calc_ratio, results_to_decimal
 from gauss_markov_srs.print import decimal_to_string, unc_to_precision
 from gauss_markov_srs.utils import cov2corr
 
 
-def save(dir, label, data, reference, corr_data, y, yu, fit_result: FitResult, fit_stats: FitStats):
-    # whodid = """# File generated on {}
-    # # Script used to generate this file: {}
-    # # Command line used to generate this file:
-    # # {}
-    # #
-    # """.format(datetime.datetime.now(), sys.argv[0], ' '.join(command))
+def save(dir, label, reference, fit_result: FitResult, fit_stats: FitStats, mask=None, keys=None):
+    """Save fit resuts and stats in different files in a directory.
 
+    Parameters
+    ----------
+    dir : string
+        Directory where to save the files.
+    label : str
+        Label to appear on the file names.
+    data : structured array
+        Input data.
+    reference : structured array.
+        Input reference.
+    fit_result : FitResult
+        Dataclass of fit results from `gauss_markov_fit`
+    fit_stats : FitStats
+        Dataclass of fit stats from `fit_stats`
+    mask : 1d array,  optional
+        Mask of valid data point (True=valid), by default None use all data.
+    keys : array-like, optional
+        list of keys for the input data, by default None or 0,1,2,3,...
+    """
     os.makedirs(dir, exist_ok=True)
 
     n_adj = fit_stats.n_adj
-    keys = get_keys(data)
+    if keys is None:
+        keys = np.arange(fit_stats.n_meas)
+
+    if mask is None:
+        mask = np.ones_like(fit_stats.y).astype(bool)
+    else:
+        mask = np.asanyarray(mask).astype(bool)
 
     label = os.path.join(dir, label)
 
@@ -51,20 +71,29 @@ def save(dir, label, data, reference, corr_data, y, yu, fit_result: FitResult, f
 
     # meas out
     with open(label + "-inputs.txt", "w") as filo:
-        measout = np.column_stack(
-            (y, yu, fit_stats.relative_residuals, fit_stats.self_sensitivity, fit_result.weights.T)
-        )
+        measout = np.column_stack((fit_stats.y, fit_stats.yu, fit_stats.relative_residuals, fit_stats.self_sensitivity))
 
         filo.write(
-            "# Frequency deviations, uncertainties, residuals, self-sensitivity coefficients and weights used for the adjusted frequencies\n"
+            "# Frequency deviations, uncertainties, residuals, self-sensitivity coefficients used for the adjusted frequencies\n"
         )
         # filo.write(whodid)
-        fmt = "{:42s}\t" + "{:8s}\t" * 2 + "{:5s}\t" * 2 + "{:8s}\t" * n_adj + "\n"
-        filo.write(fmt.format("# Key", "y", "u", "Q/u", "Sc", *reference["Atom"][1:]))
+        fmt = "{:42s}\t" + "{:8s}\t" * 2 + "{:5s}\t" * 2 + "\n"
+        filo.write(fmt.format("# Key", "y", "u", "Q/u", "Sc"))
 
-        for k, d in zip(keys, measout):
-            fmt = "{:42s}\t" + "{:.3e}\t" * 2 + "{:.3f}\t" * 2 + "{:.3f}   \t" * (len(d) - 4) + "\n"
-            filo.write(fmt.format(k, *d))
+        for k, d, m in zip(keys, measout, mask):
+            fmt = "{:42s}\t" + "{:.3e}\t" * 2 + "{:.3f}\t" * 2 + "\n"
+            filo.write(fmt.format(k + "*" * (not m), *d))
+
+    # weights out
+    with open(label + "-weights.txt", "w") as filo:
+        filo.write("# Weights used for the adjusted frequencies\n")
+        # filo.write(whodid)
+        fmt = "{:42s}\t" + "{:8s}\t" * n_adj + "\n"
+        filo.write(fmt.format("# Key", *reference["Atom"][1:]))
+
+        for k, d, m in zip(keys, fit_result.weights.T, mask):
+            fmt = "{:42s}\t" + "{:.3f}   \t" * len(d) + "\n"
+            filo.write(fmt.format(k + "*" * (not m), *d))
 
     # cov and cor out
     with open(label + "-covariance.txt", "w") as filo:

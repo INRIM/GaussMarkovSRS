@@ -8,16 +8,53 @@ from gauss_markov_srs.postprocess import results_to_decimal
 
 
 def unc_to_precision(u, digits=3):
+    """Calculate the decimal places corresponding to a given uncertainty.
+
+    Parameters
+    ----------
+    u : Decimal
+        Uncertainty.
+    digits : int, optional
+        Numbe rof digits in the uncertainty, by default 3
+
+    Returns
+    -------
+    Decimal
+        Decimal precision to be passed to Decimal.quantize or `decimal_to_string`.
+    """
     # calculate decimal places for uncertainties with 3 digits
     exp = decimal.Decimal(10) ** (int(np.floor(np.log10(abs(float(u))))) - digits + 1)
     return exp
 
 
 def decimal_to_string(d, precision):
+    """Convert a Decimal to string with a given precision.
+
+    Parameters
+    ----------
+    d : Decimal
+        Number to be converted.
+    precision : Decimal
+        Precision to be passed to Decimal.quantize
+
+    Returns
+    -------
+    string
+        Input number as string.
+    """
     return f"{d.quantize(precision)}".lower()
 
 
 def pretty_print_fit_result(fit_result: FitResult, reference):
+    """Pretty print fit results.
+
+    Parameters
+    ----------
+    reference : structured array.
+        Input reference.
+    fit_result : FitResult
+        Dataclass of fit results from `gauss_markov_fit`
+    """
     # print adjusted constants
     # also save adjusted values as string
     # print("Transition\tvalue\t\t\tunc\trel.unc")
@@ -36,6 +73,13 @@ def pretty_print_fit_result(fit_result: FitResult, reference):
 
 
 def pretty_print_stats(fit_stats: FitStats):
+    """Pretty print fit stats.
+
+    Parameters
+    ----------
+    fit_stats : FitStats
+        Dataclass of fit stats from `fit_stats`
+    """
     print(f"Number of measurements = {fit_stats.n_meas}")
     print(f"Number of adjusted constants = {fit_stats.n_adj}")
     if fit_stats.n_excluded > 0:

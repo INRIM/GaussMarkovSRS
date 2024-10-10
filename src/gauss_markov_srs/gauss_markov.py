@@ -8,6 +8,18 @@ from gauss_markov_srs.utils import cov2unc
 
 @dataclass
 class FitResult:
+    """Dataclass storing generic Fit results.
+    Attributes:
+        q : ndarray, shape (M,)
+            Adjusted values.
+        Cqq : ndarray, shape (M, M)
+            Covariance matrix of the adjusted values.
+        qu : ndarray, shape (M,)
+            Uncertainties of the adjusted values.
+        weights : ndarray, shape (M, N)
+            Matrix of weights to apply to the data to get the fit result.
+    """
+
     q: np.ndarray
     Cqq: np.ndarray
     qu: np.ndarray
@@ -16,11 +28,48 @@ class FitResult:
 
 @dataclass
 class FitStats:
+    """Dataclass storing extra information about the fit.
+    Attributes:
+        n_meas: int
+            Total number of measurement.
+        n_adj: int
+            Number of adjusted constants.
+        n_excluded: int
+            Number of measurements excluded from the fit.
+        n_included: int
+            Number of measurements included in the fit.
+        n_dof: int
+            Number of degrees of freedom.
+        y: np.ndarray, shape (N, ),
+            Normalized input data
+        yu: np.ndarray, shape (N, ),
+            Normalized input uncertainties
+        self_sensitivity: np.ndarray, shape (N, )
+            Self-sensitivity coefficients for the input data.
+        residuals : ndarray, shape (N, )
+            Residuals of the fit.
+        relative_residuals : ndarray, shape (N, )
+            Residuals of the fit scaled to the input uncertainty.
+        chi2 : float
+            Chi squared (nt reduced) of the fit
+        birge : float
+            Birge ratio (square root of the reduced chi squared).
+        birge_limit: float
+            Simple criteria for maximum acceptable Birge ratio
+        p_value: float
+            p_value of the chi2 (probability of chi2 < chi2observed)
+        n_corr_nonzero: int
+            Number of non-zero correlation coefficients.
+        min_eigenvalue: float
+            Square root of the minimum eigenvalue of the input covariance matrix.
+    """
+
     n_meas: int
     n_adj: int
     n_excluded: int
     n_included: int
     n_dof: int
+    y: np.ndarray
     yu: np.ndarray
     self_sensitivity: np.ndarray
     residuals: np.ndarray
@@ -122,6 +171,10 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
                 Number of measurements included in the fit.
             n_dof: int
                 Number of degrees of freedom.
+            y: np.ndarray, shape (N, ),
+                Normalized input data
+            yu: np.ndarray, shape (N, ),
+                Normalized input uncertainties
             self_sensitivity: np.ndarray, shape (N, )
                 Self-sensitivity coefficients for the input data.
             residuals : ndarray, shape (N, )
@@ -189,6 +242,7 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
         n_excluded,
         n_included,
         n_dof,
+        y,
         yu,
         self_sensitivity,
         residuals,

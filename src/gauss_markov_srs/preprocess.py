@@ -12,6 +12,20 @@ from gauss_markov_srs.cross_index import get_cross_index
 
 
 def get_y(data, reference):
+    """Return normalized frequencies from input data.
+
+    Parameters
+    ----------
+    data : structured array
+        Input data.
+    reference : structured array
+        Reference data.
+
+    Returns
+    -------
+    array, array
+        normalized frequencies and uncertainties, y and yu, of the input data.
+    """
     ref_str_to_i, i_to_ref_str = get_cross_index(reference["Atom"])
     # dat_str_to_i, i_to_dat_str = get_cross_index(data['Id'])
 
@@ -30,6 +44,20 @@ def get_y(data, reference):
 
 
 def get_model_matrix(data, reference):
+    """Return the model matrix from input data.
+
+    Parameters
+    ----------
+    data : structured array
+        Input data.
+    reference : structured array
+        Reference data.
+
+    Returns
+    -------
+    2D array
+        Model matrix.
+    """
     ref_str_to_i, i_to_ref_str = get_cross_index(reference["Atom"])
 
     nMeas = len(data)
@@ -51,6 +79,20 @@ def get_model_matrix(data, reference):
 
 
 def get_corr_matrix(data, cor_data):
+    """Reconstruct the input correlation matrix.
+
+    Parameters
+    ----------
+    data : structured array
+        Input data.
+    cor_data : structured array
+        input correlation data.
+
+    Returns
+    -------
+    2D array
+        Input correlation matrix.
+    """
     nMeas = len(data)
     dat_str_to_i, i_to_dat_str = get_cross_index(data["Id"])
 
