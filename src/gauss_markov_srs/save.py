@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from gauss_markov_srs.gauss_markov import FitResult, FitStats
-from gauss_markov_srs.postprocess import get_keys, results_to_decimal
+from gauss_markov_srs.postprocess import calc_ratio, get_keys, results_to_decimal
 from gauss_markov_srs.print import decimal_to_string, unc_to_precision
 from gauss_markov_srs.utils import cov2corr
 
@@ -98,28 +98,21 @@ def save(dir, label, data, reference, corr_data, y, yu, fit_result: FitResult, f
         filo.write(f"Number of non-zero correlations = {fit_stats.n_corr_nonzero}" + "\n")
         filo.write(f"Square root of min eigenvalue of covariance inputs = {fit_stats.min_eigenvalue:.3e}" + "\n")
 
-    # # ratios out
-    # with open(basename + ".rat", "w") as filo:
-    #     filo.write("# Ratios between adjusted frequency values\n")
-    #     #filo.write(whodid)
-    #     fmt = "# {:8s}\t{:8s}\t" + "{: <20}\t{: <12}\t" + "{}\t" * 2 + "\n"
-    #     filo.write(fmt.format("Atom A", "Atom B", "Ratio A/B", "Unc.", "r", "u"))
+    # ratios out
+    with open(label + "-ratios.txt", "w") as filo:
+        filo.write("# Ratios between adjusted frequency values\n")
+        # filo.write(whodid)
+        fmt = "{:8s}\t{:8s}\t" + "{: <20}\t{: <12}\t" + "\n"
+        filo.write(fmt.format("# Atom A", "Atom B", "Ratio A/B", "Unc."))
 
-    #     # print ratios
-    #     for j, J in enumerate(reference["Atom"][1:]):
-    #         for i, I in enumerate(reference["Atom"][1:]):
-    #             if i < j:
-    #                 x = decimal.Decimal(fit_result.q[i] - fit_result.q[j])
-    #                 u = (fit_result.Cqq[i, i] + fit_result.Cqq[j, j] - 2 * fit_result.Cqq[i, j]) ** 0.5
+        # print ratios
+        for i, I in enumerate(reference["Atom"][1:]):
+            for j, J in enumerate(reference["Atom"][1:]):
+                if i < j:
+                    Dr, Du = calc_ratio(reference, fit_result, I, J)
 
-    #                 Dr = nu0[I] / nu0[J] * (decimal.Decimal(1) + x)
-    #                 Du = nu0[I] / nu0[J] * decimal.Decimal(u)
+                    precision = unc_to_precision(Du)
 
-    #                 # calculate decimal places for uncertainties with 3 digits
-    #                 places = decimal.Decimal(10) ** (int(np.floor(np.log10(abs(float(Du))))) - 2)
+                    fmt = "{:8s}\t{:8s}\t" + "{: <20}\t{: <12}\t" + "\n"
 
-    #                 # print("{:8}\t{:8}\t{: <20}\t{: <12}".format(I, J, Dr.quantize(places), Du.quantize(places)))
-
-    #                 fmt = "{:8s}\t{:8s}\t" + "{: <20}\t{: <12}\t" + "{:.2e}\t" * 2 + "\n"
-
-    #                 filo.write(fmt.format(I, J, Dr.quantize(places), Du.quantize(places), x, u))
+                    filo.write(fmt.format(I, J, decimal_to_string(Dr, precision), decimal_to_string(Du, precision)))
