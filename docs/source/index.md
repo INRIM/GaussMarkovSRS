@@ -6,6 +6,6 @@
 :maxdepth: 2
 
 installation.md
-quickstart.md
+usage.md
 apidocs/index
 ```
