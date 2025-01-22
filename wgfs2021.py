@@ -10,6 +10,8 @@ gm = reload(gm)
 input_data = gm.load_excel("./Data/Input/CCTF2021/inputs.xlsx")
 input_corr = gm.load_txt("./Data/Input/CCTF2021/correlations.txt")
 reference = gm.load_txt("./Data/Reference/CCTF2017.txt")
+reference2 = gm.load_txt("./Data/Reference/CCTF2021full-precision.txt")
+
 
 
 # input_data = gm.data_with_long_id(input_data)
@@ -83,3 +85,28 @@ gm.pretty_print_stats(stats3)
 gm.plot_fit_results(
     "./Output/", reference, [fit_results, fit_results2, fit_results3], ["Adjustment-1", "Adjustment-2", "Adjustment-3"]
 )
+
+
+# check with full-precision results
+
+y, yu = gm.get_y(input_data, reference2)
+M = gm.get_model_matrix(input_data, reference2)
+cyy = gm.get_corr_matrix(input_data, input_corr)
+
+Cyy = gm.corr2cov(cyy, yu)
+
+fit_results4 = gm.gauss_markov_fit(M, y, Cyy)
+stats4 = gm.fit_stats(M, y, Cyy, fit_results4)
+
+
+gm.pretty_print_fit_result(fit_results4, reference2)
+gm.pretty_print_stats(stats4)
+
+dir = "./Output/Adjustment-4"
+figdir = "./Output/Adjustment-4/Figures"
+label = "Adjustment-4"
+
+gm.plot_residuals(figdir, label, input_data, reference2, fit_results4, stats4)
+#gm.plot_correlation_matrix(figdir, label, cyy, figname="input-correlation.png")
+gm.save(dir, label, reference2, fit_results4, stats4, keys=gm.get_long_keys(input_data))
+
