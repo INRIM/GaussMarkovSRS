@@ -34,7 +34,7 @@ def load_txt(filename):
     Parameters
     ----------
     filename : string
-        Excel file to be open.
+        Text file to be open.
 
     Returns
     -------
@@ -47,6 +47,7 @@ def load_txt(filename):
     df.columns = df.columns.str.strip("# ")
 
     return df.to_records(index=False)
+
 
 
 if __name__ == "__main__":
