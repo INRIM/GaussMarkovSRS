@@ -1,6 +1,7 @@
 from .cross_index import *
 from .gauss_markov import *
 from .load import *
+from .parse import *
 from .plot import *
 from .postprocess import *
 from .preprocess import *

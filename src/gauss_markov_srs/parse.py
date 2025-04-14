@@ -1,17 +1,18 @@
-import numpy as np
 import re
 
+import numpy as np
 
 from gauss_markov_srs.cross_index import get_cross_index
 from gauss_markov_srs.load import load_txt
+
 
 def parse_wgfs_file(filename, reference=None):
     with open(filename, "r") as f:
         lines = f.readlines()
 
     reference_lines = []
-    input_data_lines = []
-    input_corr_lines = []
+    input_lines = []
+    corr_lines = []
 
     current_reading = None
     for line in lines:
@@ -30,24 +31,37 @@ def parse_wgfs_file(filename, reference=None):
         if current_reading == "reference":
             reference_lines.append(line)
         if current_reading == "input":
-            input_data_lines.append(line)
+            input_lines.append(line)
         if current_reading == "corr":
-            input_corr_lines.append(line)
+            corr_lines.append(line)
 
-    dtype_input = [("Id", "O"), ("Ref", "O"), ("Atom1", "O"), ("Atom2", "O"), ("Sup", "O"), ("Value", "O"), ("Unc", "O"), ("Note", "O")]
-    arr2 = np.array([parse_wgfs_input(line, reference) for line in input_data_lines], dtype=dtype_input)
+    dtype_input = [
+        ("Id", "O"),
+        ("Ref", "O"),
+        ("Atom1", "O"),
+        ("Atom2", "O"),
+        ("Sup", "O"),
+        ("Value", "O"),
+        ("Unc", "O"),
+        ("Note", "O"),
+    ]
+    input_array = np.array([parse_wgfs_input_line(line, reference) for line in input_lines], dtype=dtype_input)
 
-    return arr2
+    dtype_corr = [("Id1", "O"), ("Id2", "O"), ("Corr", "O")]
+    corr_array = np.array([parse_wgfs_corr_line(line) for line in corr_lines], dtype=dtype_corr)
 
-def parse_wgfs_input(line, reference = None):
+    return input_array, corr_array
+
+
+def parse_wgfs_input_line(line, reference=None):
     parts = line.split(None, 4)
 
     id = parts[0]
-    ref, note = (parts[4].strip("[]").split(',' ,1)+[""])[:2]
+    ref, note = (parts[4].strip("[]").split(",", 1) + [""])[:2]
     ref, sup = split_name_year_suffix(ref)
-    ref1 ,ref2 = (parts[1].split('_over_' ,1)+["nu0"])[:2]
+    ref1, ref2 = (parts[1].split("_over_", 1) + ["nu0"])[:2]
     value = parts[2]
-    unc = parts[2]
+    unc = parts[3]
 
     if reference is None:
         atom1, atom2 = ref1, ref2
@@ -55,10 +69,9 @@ def parse_wgfs_input(line, reference = None):
         ref_str_to_i, i_to_ref_str = get_cross_index(reference["Id"])
 
         atom1 = reference["Atom"][ref_str_to_i(ref1)]
-        atom2 = reference["Atom"][ref_str_to_i(ref1)]
+        atom2 = reference["Atom"][ref_str_to_i(ref2)]
 
     return (id, ref, atom1, atom2, sup, value, unc, note)
-
 
 
 def split_name_year_suffix(s):
@@ -74,7 +87,15 @@ def split_name_year_suffix(s):
         return name + year + suffix, ""
     else:
         return name + year, suffix
-    
+
+
+def parse_wgfs_corr_line(line):
+    match = re.match(r"r\(([^,]+),([^)]+)\)\s+(.+)", line.strip())
+    if not match:
+        raise ValueError(f"Line does not match expected format: {line}")
+    id1, id2, value = match.groups()
+    return (id1.strip(), id2.strip(), value.strip())
+
 
 if __name__ == "__main__":
     fili = "../../Data/Live/Metrologia_paper_secondary/ClockInputData2020_7.dat"
@@ -82,5 +103,5 @@ if __name__ == "__main__":
 
     ref = load_txt(refi)
 
-    a = parse_wgfs_file(fili)
-    b = parse_wgfs_file(fili, ref)
+    a, ac = parse_wgfs_file(fili)
+    b, bc = parse_wgfs_file(fili, ref)
