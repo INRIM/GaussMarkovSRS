@@ -7,6 +7,22 @@ from gauss_markov_srs.load import load_txt
 
 
 def parse_wgfs_file(filename, reference=None):
+    """Parse a file with the format shared within the WGFS returning structured arrays ready for fitting.
+
+    Parameters
+    ----------
+    filename : str
+        Input file
+    reference : structured array, optional
+        convert the names of Atom using the array as a reference, by default None
+        This structured array should be in reference format and should match Id with the convention used in the input file (e.g., "nu1", "nu2", etc..).
+
+    Returns
+    -------
+    ndarray, ndarray
+        structured arrays of input data and input correlations
+        defining the columns expected by gauss_markov_srs, with the type of each column as 'o' for unicode strings
+    """
     with open(filename, "r") as f:
         lines = f.readlines()
 
@@ -54,6 +70,22 @@ def parse_wgfs_file(filename, reference=None):
 
 
 def parse_wgfs_input_line(line, reference=None):
+    """Parse a single line describing an input measurement from the format shared within the WGFS.
+
+    Parameters
+    ----------
+    line : str
+        line to be parsed
+    reference : structured array, optional
+        convert the names of Atom using the array as a reference, by default None
+        This structured array should be in reference format and should match Id with the convention used in the input file (e.g., "nu1", "nu2", etc..).
+
+    Returns
+    -------
+    tuple
+        tuple of (id, ref, atom1, atom2, sup, value, unc, note)
+
+    """
     parts = line.split(None, 4)
 
     id = parts[0]
@@ -75,6 +107,25 @@ def parse_wgfs_input_line(line, reference=None):
 
 
 def split_name_year_suffix(s):
+    """Parse the reference from the format shared within the WGFS
+
+    Parameters
+    ----------
+    s : str
+        reference
+
+    Returns
+    -------
+    tuple
+        tuple of (ref. as name+year, supplementary info)
+
+    Examples
+    --------
+    "brown2022"	-> ("brown2022", "")
+    "smith2024a" -> ("smith2024a","")
+    "charles2023errata" ->	("charles2023", "errata")
+
+    """
     match = re.match(r"^([a-z]+)(\d{4})([a-z]*)$", s, re.IGNORECASE)
     if not match:
         return s, ""
@@ -90,6 +141,23 @@ def split_name_year_suffix(s):
 
 
 def parse_wgfs_corr_line(line):
+    """Parse a line of correlations from the format shared within the WGFS.
+
+    Parameters
+    ----------
+    line : str
+        line to be read
+
+    Returns
+    -------
+    tuple
+        tuple of (Id1, id2, corr)
+
+    Examplea
+    -------
+    "r(q3,q71)	0.004" -> ("q3", "q71", "0.004")
+
+    """
     match = re.match(r"r\(([^,]+),([^)]+)\)\s+(.+)", line.strip())
     if not match:
         raise ValueError(f"Line does not match expected format: {line}")
