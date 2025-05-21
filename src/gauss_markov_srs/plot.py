@@ -8,6 +8,7 @@ from matplotlib.ticker import FormatStrFormatter, MultipleLocator
 
 from gauss_markov_srs.cross_index import get_cross_index
 from gauss_markov_srs.gauss_markov import FitResult, FitStats
+from gauss_markov_srs.postprocess import calc_ratio
 
 # plot params
 params = {
@@ -55,7 +56,7 @@ def plot_correlation_matrix(dir, label, cyy, figname="correlation.png"):
 
 
 def plot_residuals(
-    dir, label, data, reference, fit_result: FitResult, fit_stats: FitStats, mask=None, basename="residuals{}-{}.png"
+    dir, label, data, reference, fit_result: FitResult, fit_stats: FitStats, mask=None, basename="residuals-{}-{}.png"
 ):
     """Save plots of fit residuals, separated by atoms.
 
@@ -78,9 +79,6 @@ def plot_residuals(
     basename : str, optional
         String of the file name, can format ref_id and ref_atom, by default "residuals{}-{}.png"
     """
-    mpl.rcParams.update(mpl.rcParamsDefault)
-    plt.style.use(params)
-
     os.makedirs(dir, exist_ok=True)
 
     ref_str_to_i, i_to_ref_str = get_cross_index(reference["Atom"])
@@ -213,7 +211,7 @@ def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.pn
     M = len(reference) - 1
 
     scale = 1e-16
-    split = 0.3 / (N - 1)
+    split = 0.3 / (N - 1) if N > 1 else 0.3
 
     x0 = np.arange(M) - 0.15
 
@@ -237,4 +235,112 @@ def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.pn
     file = os.path.join(dir, figname)
     plt.savefig(file)
     plt.close()
+    mpl.rcdefaults()
+
+
+def plot_ratio_residuals(
+    dir,
+    atoms,
+    label,
+    data,
+    reference,
+    fit_result: FitResult,
+    fit_stats: FitStats,
+    mask=None,
+    basename="ratio-residuals-{}-{}.png",
+):
+    os.makedirs(dir, exist_ok=True)
+
+    ref_str_to_i, i_to_ref_str = get_cross_index(reference["Atom"])
+
+    mpl.rcParams.update(mpl.rcParamsDefault)
+    plt.style.use(params)
+
+    if mask is None:
+        fit_mask = np.ones(len(data)).astype(bool)
+    else:
+        fit_mask = np.asanyarray(mask).astype(bool)
+
+    if len(atoms) < 2:
+        raise ValueError("Please specify at least two atoms to plot ratios.")
+
+    for i in range(len(atoms)):
+        for j in range(i + 1, len(atoms)):
+            atom1 = atoms[i]
+            atom2 = atoms[j]
+
+            match_mask = (data["Atom1"] == atom1) & (data["Atom2"] == atom2)
+            inv_mask = (data["Atom1"] == atom2) & (data["Atom2"] == atom1)
+
+            plot_mask = match_mask | inv_mask
+
+            N = sum(plot_mask)
+
+            width, height = 8, max(6, N * 0.16 + 0.5)
+
+            plt.figure(figsize=(width, height))
+            plt.title(atom1 + "/" + atom2 + " " + label)
+
+            Dr, Du = calc_ratio(reference, fit_result, atom1, atom2)
+            ref_unc = float(Du)
+
+            plt.axvline(0, color="gray", linewidth=1)
+            plt.axvspan(-ref_unc, ref_unc, alpha=0.25, color="gray")
+
+            X = fit_stats.residuals[plot_mask]
+            U = fit_stats.yu[plot_mask]
+            ref1 = data["Atom1"][plot_mask]
+            ref2 = data["Atom2"][plot_mask]
+            input_used = fit_mask[plot_mask]
+
+            # some data may require a change of sign
+            mask3 = inv_mask[plot_mask]
+            X[mask3] = -X[mask3]
+
+            # y labels
+            Y = np.arange(N)
+
+            labels = data["Ref"][plot_mask].astype(str)
+
+            markers = ["o", "d", "s", "v", "p", "^", "X", "*", "<", ">", "P", "|", "2", "h", "."]
+
+            mark = 0
+
+            if plot_mask.any():
+                plt.errorbar(
+                    x=X,
+                    y=Y,
+                    xerr=U,
+                    fmt=markers[mark],
+                    color=f"C{mark}",
+                )
+
+                not_used = ~input_used
+                if not_used.any():
+                    plt.errorbar(
+                        x=X[not_used],
+                        y=Y[not_used],
+                        fmt=markers[mark],
+                        color=f"C{mark}",
+                        markerfacecolor="white",
+                    )
+
+            # plt.legend(loc=0)
+
+            plt.ylim(-0.5, N - 0.5)
+            plt.grid(which="both")
+
+            # adjust too big xlim
+            xl = plt.xlim()
+            plt.xlim(np.clip(xl, -40 * ref_unc, 40 * ref_unc))
+
+            plt.yticks(np.arange(len(labels)), list(labels))
+            plt.xlabel("$y$")
+
+            plt.tight_layout()
+            figname = basename.format(atom1, atom2)
+            file = os.path.join(dir, figname)
+            plt.savefig(file)
+            plt.close()
+
     mpl.rcdefaults()
