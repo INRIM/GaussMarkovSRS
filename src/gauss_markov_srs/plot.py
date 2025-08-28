@@ -276,6 +276,9 @@ def plot_ratio_residuals(
 
             N = sum(plot_mask)
 
+            if N == 0:
+                continue
+
             width, height = 8, max(6, N * 0.16 + 0.5)
 
             plt.figure(figsize=(width, height))
