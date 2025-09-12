@@ -56,7 +56,15 @@ def plot_correlation_matrix(dir, label, cyy, figname="correlation.png"):
 
 
 def plot_residuals(
-    dir, label, data, reference, fit_result: FitResult, fit_stats: FitStats, mask=None, basename="residuals-{}-{}.png"
+    dir,
+    label,
+    data,
+    reference,
+    fit_result: FitResult,
+    fit_stats: FitStats,
+    mask=None,
+    basename="residuals-{}-{}.png",
+    as_absolute=False,
 ):
     """Save plots of fit residuals, separated by atoms.
 
@@ -132,7 +140,9 @@ def plot_residuals(
         # y labels
         Y = np.arange(N)
 
-        labels = data["Ref"][plot_mask].astype(str)
+        refs = data["Ref"][plot_mask].astype(str)
+        ids = data["Id"][plot_mask].astype(str)
+        labels = [f"{id} [{ref}]" for id, ref in zip(ids, refs)]
         markers = ["o", "d", "s", "v", "p", "^", "X", "*", "<", ">", "P", "|", "2", "h", "."]
 
         mark = 0
@@ -141,11 +151,16 @@ def plot_residuals(
 
             plot_mask2 = ref == ref_atom2
 
+            if as_absolute:
+                unc = (U[plot_mask2] ** 2 + ku[i] ** 2) ** 0.5
+            else:
+                unc = U[plot_mask2]
+
             if plot_mask2.any():
                 plt.errorbar(
                     x=X[plot_mask2],
                     y=Y[plot_mask2],
-                    xerr=(U[plot_mask2] ** 2 + ku[i] ** 2) ** 0.5,
+                    xerr=unc,
                     label="vs {}".format(ref_atom2),
                     fmt=markers[mark],
                     color=f"C{mark}",
@@ -184,7 +199,7 @@ def plot_residuals(
     mpl.rcdefaults()
 
 
-def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.png"):
+def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.png", ylim=None):
     """Save a plot comparing different fit results.
 
     Parameters
@@ -211,15 +226,15 @@ def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.pn
     M = len(reference) - 1
 
     scale = 1e-16
-    split = 0.3 / (N - 1) if N > 1 else 0.3
+    split = 0.7 / (N - 1) if N > 1 else 0.7
 
-    x0 = np.arange(M) - 0.15
+    x0 = np.arange(M) - 0.35
 
     plt.figure()
 
     for j, (res, label) in enumerate(zip(fit_results, labels)):
         x = x0 + j * split
-        plt.errorbar(x=x, y=res.q / scale, yerr=res.qu / scale, fmt="d", label=label)
+        plt.errorbar(x=x, y=res.q / scale, yerr=res.qu / scale, fmt="d", label=label, markersize=4)
 
     plt.ylabel("$q\\times10^{16}$")
     plt.grid()
@@ -229,7 +244,8 @@ def plot_fit_results(dir, reference, fit_results, labels, figname="fit-result.pn
     plt.xticks(np.arange(M), reference["Atom"][1:], rotation=90)
     plt.xlim(-0.5, M + 0.5)
 
-    plt.ylim(-5, 5)
+    if ylim:
+        plt.ylim(ylim)
 
     plt.tight_layout()
     file = os.path.join(dir, figname)
@@ -303,8 +319,9 @@ def plot_ratio_residuals(
             # y labels
             Y = np.arange(N)
 
-            labels = data["Ref"][plot_mask].astype(str)
-
+            refs = data["Ref"][plot_mask].astype(str)
+            ids = data["Id"][plot_mask].astype(str)
+            labels = [f"{id} [{ref}]" for id, ref in zip(ids, refs)]
             markers = ["o", "d", "s", "v", "p", "^", "X", "*", "<", ">", "P", "|", "2", "h", "."]
 
             mark = 0
