@@ -70,6 +70,7 @@ rocit = input_data["Ref"] == "Lindvall2025"
 bacon = input_data["Ref"] == "Beloy2021"
 ptb = input_data["Ref"] == "Dorscher2020"
 riken = input_data["Ref"] == "Nemitz2016"
+absolute = input_data["Atom2"] == "133Cs"
 
 # 2021
 y, yu = gm.get_y(input_data2021, reference)
@@ -179,6 +180,11 @@ adj7 = process(
     mask=mask3,
 )
 adjustments.append(adj7)
+
+# EXCLUDING DATA
+mask8 = absolute
+adj8 = process(input_data, y, yu, M, cyy, reference, label="Adj 8", description="No optical ratios", mask=mask8)
+adjustments.append(adj8)
 
 
 # SUMMARIES
