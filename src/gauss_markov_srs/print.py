@@ -96,6 +96,31 @@ def pretty_print_stats(fit_stats: FitStats):
     print(f"Square root of min eigenvalue of covariance inputs = {fit_stats.min_eigenvalue:.3e}")
 
 
+def pretty_print_outliers(input_data, fit_stats: FitStats, mask=None):
+    if mask is None:
+        mask = np.ones(fit_stats.n_meas).astype(bool)
+
+    arr = np.abs(fit_stats.relative_residuals)
+    idx = (-arr).argsort()
+    print("Outliers larger than 2 sigmas:")
+    print("(* = excluded from the fit)")
+    for i in idx:
+        if arr[i] < 2:
+            break
+
+        extra = "" if mask[i] else "*"
+
+        out = [
+            input_data["Id"][i],
+            "[" + input_data["Ref"][i] + "]",
+            input_data["Atom1"][i] + "/" + input_data["Atom2"][i],
+            f"{fit_stats.relative_residuals[i]:.3f}",
+            extra,
+        ]
+        string = "\t".join(out)
+        print(string)
+
+
 if __name__ == "__main__":
     x = unc_to_precision(decimal.Decimal(1.42123), 3)
     print(decimal_to_string(decimal.Decimal("1000.123456789"), x))
