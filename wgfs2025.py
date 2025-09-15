@@ -12,7 +12,7 @@ reference = gm.load_txt("./Data/Reference/CCTF2021.txt")
 
 
 input_file2021 = "./Data/Input/CCTF2021/ClockInputData2020_7.dat"
-input_file = "./Data/Live/ClockInputData2025_mod_basis_n=153_TAI_05092025_ExpandUncV1_AdHocCorrV2.dat"
+input_file = "./Data/Live/ClockInputData2025_mod_basis_n=153_TAI_05092025_ExpandUncV1_AdHocCorrV2_2.dat"
 base_dir = "./Output/"
 
 
@@ -122,12 +122,14 @@ np.savetxt(os.path.join(base_dir, "A2-expanded-unc.dat"), gm.cov2unc(Cb))
 # RANDOM EFFECT MODEL 2
 mask3 = mask2
 
+
 def random_effect_model2(b, mask):
     yub = (yu**2 + b**2 * 1e-32) ** 0.5
     Cb = gm.corr2cov(cyy, yub)
     fit_results_temp = gm.gauss_markov_fit(M, y, Cb, mask=mask)
     stats_temp = gm.fit_stats(M, y, Cb, fit_results_temp, mask=mask)
     return stats_temp.chi2 / stats_temp.n_dof - 1.0
+
 
 b = brentq(random_effect_model2, 0, 5, args=mask3)
 yub = (yu**2 + b**2 * 1e-32) ** 0.5
@@ -167,8 +169,6 @@ absolute = input_data["Atom2"] == "133Cs"
 mask5 = absolute & mask2
 adj5 = process(input_data, y, yu, M, cyy, reference, label="Adj 5", description="Test: No optical ratios", mask=mask5)
 adjustments.append(adj5)
-
-
 
 
 # SUMMARIES

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 import scipy.stats as st
 
-from gauss_markov_srs.utils import cov2unc
+from gauss_markov_srs.utils import cov2corr, cov2unc
 
 
 @dataclass
@@ -47,7 +47,7 @@ class FitStats:
         self_sensitivity: np.ndarray, shape (N, )
             Self-sensitivity coefficients for the input data.
         residuals : ndarray, shape (N, )
-            Residuals of the fit.
+            Residuals of the fit., 1) > 1e-6)
         relative_residuals : ndarray, shape (N, )
             Residuals of the fit scaled to the input uncertainty.
         chi2 : float
@@ -217,6 +217,7 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
     Q_mask = Q[mask]
 
     invCyy = np.linalg.inv(Cyy)
+    cyy = cov2corr(Cyy)
 
     n_included, n_adj = A.shape
     n_excluded = n_meas - n_included
@@ -229,7 +230,7 @@ def fit_stats(A, y, Cyy, fit_result, mask=None):
 
     val, _ = np.linalg.eigh(Cyy)
     min_eigenvalue = np.amin(val) ** 0.5
-    n_corr_nonzero = np.count_nonzero(Cyy - np.eye(n_included) * yu[mask] ** 2) // 2
+    n_corr_nonzero = np.sum(np.abs(np.triu(cyy, 1)) > 1e-4).astype(int)
 
     # prepare return arrays
     self_sensitivity = np.squeeze(np.array(Sc, ndmin=1))
