@@ -11,4 +11,4 @@ The EMPIR initiative is cofunded by the European Union’s Horizon 2020 research
 
 ## Authors
 
-(c) 2020-2024 Marco Pizzocaro - Istituto Nazionale di Ricerca Metrologica (INRIM)
+(c) 2020-2025 Marco Pizzocaro - Istituto Nazionale di Ricerca Metrologica (INRIM)
